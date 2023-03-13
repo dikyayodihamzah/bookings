@@ -8,6 +8,7 @@ import (
 
 func TestNoSurf(t *testing.T) {
 	var myH myHandler
+
 	h := NoSurf(&myH)
 
 	switch v := h.(type) {
@@ -21,6 +22,7 @@ func TestNoSurf(t *testing.T) {
 
 func TestSessionLoad(t *testing.T) {
 	var myH myHandler
+
 	h := SessionLoad(&myH)
 
 	switch v := h.(type) {

@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"testing"
-
-	"github.com/dikyayodihamzah/bookings/internal/config"
 	"github.com/go-chi/chi"
+	"github.com/dikyayodihamzah/bookings/internal/config"
+	"testing"
 )
 
 func TestRoutes(t *testing.T) {
@@ -15,7 +14,7 @@ func TestRoutes(t *testing.T) {
 
 	switch v := mux.(type) {
 	case *chi.Mux:
-		// do nothing
+		// do nothing; test passed
 	default:
 		errStr := fmt.Sprintf("type is not *chi.Mux, but is %T", v)
 		t.Error(errStr)

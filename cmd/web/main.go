@@ -23,7 +23,7 @@ var session *scs.SessionManager
 var infoLog *log.Logger
 var errorLog *log.Logger
 
-// main is the main function
+// main is the main application function
 func main() {
 	db, err := run()
 	if err != nil {
@@ -34,15 +34,14 @@ func main() {
 	errStr := fmt.Sprintf("Staring application on port %s", portNumber)
 	fmt.Println(errStr)
 
+
 	srv := &http.Server{
 		Addr:    portNumber,
 		Handler: routes(&app),
 	}
 
 	err = srv.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(err)
 }
 
 func run() (*driver.DB, error) {
@@ -50,7 +49,7 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Reservation{})
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
-	gob.Register(models.RoomRestriction{})
+	gob.Register(models.Restriction{})
 
 	// change this to true when in production
 	app.InProduction = false
@@ -61,7 +60,6 @@ func run() (*driver.DB, error) {
 	errorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	app.ErrorLog = errorLog
 
-	// set up the session
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
 	session.Cookie.Persist = true
@@ -72,11 +70,10 @@ func run() (*driver.DB, error) {
 
 	// connect to database
 	log.Println("Connecting to database...")
-	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=tcs password=")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings_dev user=postgres password=")
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")
 	}
-
 	log.Println("Connected to database!")
 
 	tc, err := render.CreateTemplateCache()
