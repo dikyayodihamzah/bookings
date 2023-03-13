@@ -3,6 +3,11 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/alexedwards/scs/v2"
 	"github.com/dikyayodihamzah/bookings/internal/config"
 	"github.com/dikyayodihamzah/bookings/internal/driver"
@@ -10,10 +15,6 @@ import (
 	"github.com/dikyayodihamzah/bookings/internal/helpers"
 	"github.com/dikyayodihamzah/bookings/internal/models"
 	"github.com/dikyayodihamzah/bookings/internal/render"
-	"log"
-	"net/http"
-	"os"
-	"time"
 )
 
 const portNumber = ":8080"
@@ -31,9 +32,12 @@ func main() {
 	}
 	defer db.SQL.Close()
 
+	defer close(app.MailChan)
+	fmt.Println("Starting mail listener...")
+	listenForMail()
+
 	errStr := fmt.Sprintf("Staring application on port %s", portNumber)
 	fmt.Println(errStr)
-
 
 	srv := &http.Server{
 		Addr:    portNumber,
@@ -50,6 +54,9 @@ func run() (*driver.DB, error) {
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
+
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 
 	// change this to true when in production
 	app.InProduction = false

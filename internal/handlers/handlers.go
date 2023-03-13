@@ -2,6 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/dikyayodihamzah/bookings/internal/config"
 	"github.com/dikyayodihamzah/bookings/internal/driver"
 	"github.com/dikyayodihamzah/bookings/internal/forms"
@@ -9,10 +15,6 @@ import (
 	"github.com/dikyayodihamzah/bookings/internal/render"
 	"github.com/dikyayodihamzah/bookings/internal/repository"
 	"github.com/dikyayodihamzah/bookings/internal/repository/dbrepo"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // Repo the repository used by the handlers
@@ -45,7 +47,7 @@ func NewHandlers(r *Repository) {
 	Repo = r
 }
 
-//Home is the home page handler
+// Home is the home page handler
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
 	render.Template(w, r, "home.page.tmpl", &models.TemplateData{})
 }
@@ -178,6 +180,37 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	// send notification email to client
+	hmtlMessage := fmt.Sprintf(`
+		<strong>Reservation Confirmation</strong><br>
+		Dear %s,<br>
+		This is to confirm your reservation from %s to %s.
+	`, reservation.FirstName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+
+	msg := models.MailData{
+		To:      reservation.Email,
+		From:    "me@here.ca",
+		Subjet:  "Reservation Confirmation",
+		Content: hmtlMessage,
+	}
+
+	m.App.MailChan <- msg
+
+	// send notification email to property owner
+	hmtlMessage = fmt.Sprintf(`
+		<strong>Reservation Notification</strong><br>
+		A reservation has been made for %s from %s to %s.
+	`, reservation.Room.RoomName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+
+	msg = models.MailData{
+		To:      "me@here.id",
+		From:    "me@here.ca",
+		Subjet:  "Reservation Notification",
+		Content: hmtlMessage,
+	}
+
+	m.App.MailChan <- msg
 
 	m.App.Session.Put(r.Context(), "reservation", reservation)
 
@@ -352,16 +385,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 
 // ChooseRoom displays list of available rooms
 func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
-	// used to have next 6 lines
-	//roomID, err := strconv.Atoi(chi.URLParam(r, "id"))
-	//if err != nil {
-	//	log.Println(err)
-	//	m.App.Session.Put(r.Context(), "error", "missing url parameter")
-	//	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	//	return
-	//}
 
-	// changed to this, so we can test it more easily
 	// split the URL up by /, and grab the 3rd element
 	exploded := strings.Split(r.RequestURI, "/")
 	roomID, err := strconv.Atoi(exploded[2])
@@ -413,4 +437,11 @@ func (m *Repository) BookRoom(w http.ResponseWriter, r *http.Request) {
 	m.App.Session.Put(r.Context(), "reservation", res)
 
 	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
+}
+
+func (m *Repository) ShowLogin(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "login.page.tmpl", &models.TemplateData{
+		Form: forms.New(nil),
+	})
+
 }
