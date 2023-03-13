@@ -2,9 +2,10 @@ package dbrepo
 
 import (
 	"errors"
-	"github.com/dikyayodihamzah/bookings/internal/models"
 	"log"
 	"time"
+
+	"github.com/dikyayodihamzah/bookings/internal/models"
 )
 
 func (m *testDBRepo) AllUsers() bool {
@@ -101,4 +102,15 @@ func (m *testDBRepo) GetRoomByID(id int) (models.Room, error) {
 		return room, errors.New("some error")
 	}
 	return room, nil
+}
+
+func (m *testDBRepo) GetUserByID(id int) (models.User, error) {
+	var user models.User
+	return user, nil
+}
+func (m *testDBRepo) UpdateUser(user models.User) error {
+	return nil
+}
+func (m *testDBRepo) Authenticate(email, testPassword string) (int, string, error) {
+	return 1, "", nil
 }
