@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/justinas/nosurf"
-	"github.com/dikyayodihamzah/bookings/internal/config"
-	"github.com/dikyayodihamzah/bookings/internal/models"
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
+
+	"github.com/dikyayodihamzah/bookings/internal/config"
+	"github.com/dikyayodihamzah/bookings/internal/models"
+	"github.com/justinas/nosurf"
 )
 
 var functions = template.FuncMap{}
@@ -75,6 +76,7 @@ func Template(w http.ResponseWriter, r *http.Request, tmpl string, td *models.Te
 func CreateTemplateCache() (map[string]*template.Template, error) {
 
 	myCache := map[string]*template.Template{}
+	// fmt.Println(myCache)
 
 	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.tmpl", pathToTemplates))
 	if err != nil {
